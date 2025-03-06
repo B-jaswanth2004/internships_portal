@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Status</title>
+    <link rel="stylesheet" href="fstyles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Student Feedback Status</h2>
+
+        <!-- Search Bar -->
+        <input type="text" id="searchInput" placeholder="Search by Name, Roll Number, or Industry" onkeyup="searchTable()">
+
+        <!-- Sort Option -->
+        <label for="sortSelect">Sort By:</label>
+        <select id="sortSelect" onchange="sortTable()">
+            <option value="studentName">Name</option>
+            <option value="rollNumber">Roll Number</option>
+            <option value="batch">Batch</option>
+            <option value="industryName">Industry</option>
+        </select>
+
+        <!-- Table -->
+        <table id="feedbackTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">Name</th>
+                    <th onclick="sortTable(1)">Roll Number</th>
+                    <th onclick="sortTable(2)">Batch</th>
+                    <th onclick="sortTable(3)">Industry Name</th>
+                    <th onclick="sortTable(4)">Duration</th>
+                    <th onclick="sortTable(5)">Domain</th>
+                    <th onclick="sortTable(6)">Relevance</th>
+                    <th onclick="sortTable(7)">Mentor Support</th>
+                    <th onclick="sortTable(8)">Practical Exposure</th>
+                    <th onclick="sortTable(9)">Technical Skills</th>
+                    <th onclick="sortTable(10)">Problem Solving</th>
+                    <th onclick="sortTable(11)">Job Preparation</th>
+                    <th onclick="sortTable(12)">Key Learnings</th>
+                    <th onclick="sortTable(13)">Improvements</th>
+                    <th onclick="sortTable(14)">Additional Comments</th>
+                </tr>
+            </thead>
+            <tbody id="feedbackTableBody">
+                <!-- Feedback data will be loaded here -->
+            </tbody>
+        </table>
+
+        <!-- Buttons -->
+        <button onclick="downloadCSV()">Download CSV</button>
+        <button id="backButton">Back to Dashboard</button>
+    </div>
+
+   <!-- Declare feedbackData globally -->
+<script>
+    let feedbackData = []; // Now it's accessible everywhere
+</script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA7Z3bImR0ExmGk5xN1JlF9O2xzKoNtJe8",
+        authDomain: "vsip-ae225.firebaseapp.com",
+        databaseURL: "https://vsip-ae225-default-rtdb.firebaseio.com",
+        projectId: "vsip-ae225",
+        storageBucket: "vsip-ae225.appspot.com",
+        messagingSenderId: "583742741789",
+        appId: "1:583742741789:web:96371708ed7f76c45415f4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    onAuthStateChanged(auth, (user) => {
+        if (!user) {
+            alert("You must be logged in to view feedback.");
+            window.location.href = "login.html";
+        } else {
+            loadFeedbackData();
+        }
+    });
+
+    function loadFeedbackData() {
+        const feedbackRef = ref(db, "internship_feedbacks");
+
+        get(feedbackRef)
+            .then((snapshot) => {
+                if (snapshot.exists()) {
+                    feedbackData = []; // Reset global array
+                    const tableBody = document.getElementById("feedbackTableBody");
+                    tableBody.innerHTML = "";
+
+                    snapshot.forEach((childSnapshot) => {
+                        const data = childSnapshot.val();
+                        feedbackData.push(data); // Now accessible in non-module scripts
+
+                        const row = `<tr>
+                            <td>${data?.studentName ?? "N/A"}</td>
+                            <td>${data?.rollNumber ?? "N/A"}</td>
+                            <td>${data?.batch ?? "N/A"}</td>
+                            <td>${data?.industryName ?? "N/A"}</td>
+                            <td>${data?.duration ?? "N/A"}</td>
+                            <td>${data?.domain ?? "N/A"}</td>
+                            <td>${data?.relevance ?? "N/A"}</td>
+                            <td>${data?.mentorSupport ?? "N/A"}</td>
+                            <td>${data?.practicalExposure ?? "N/A"}</td>
+                            <td>${data?.technicalSkills ?? "N/A"}</td>
+                            <td>${data?.problemSolving ?? "N/A"}</td>
+                            <td>${data?.jobPreparation ?? "N/A"}</td>
+                            <td>${data?.keyLearnings ?? "N/A"}</td>
+                            <td>${data?.improvements ?? "N/A"}</td>
+                            <td>${data?.additionalComments ?? "N/A"}</td>
+                        </tr>`;
+                        tableBody.innerHTML += row;
+                    });
+                } else {
+                    console.log("No feedback found.");
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching feedback:", error);
+            });
+    }
+</script>
+
+<!-- 🛠️ Move Utility Functions Outside Module -->
+<script>
+    function searchTable() {
+        const input = document.getElementById("searchInput").value.toLowerCase();
+        const rows = document.querySelectorAll("#feedbackTable tbody tr");
+
+        rows.forEach(row => {
+            const name = row.cells[0].innerText.toLowerCase();
+            const roll = row.cells[1].innerText.toLowerCase();
+            const industry = row.cells[3].innerText.toLowerCase();
+
+            if (name.includes(input) || roll.includes(input) || industry.includes(input)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    function sortTable() {
+        const table = document.getElementById("feedbackTable");
+        const tbody = table.getElementsByTagName("tbody")[0];
+        const rows = Array.from(tbody.getElementsByTagName("tr"));
+        const columnIndex = document.getElementById("sortSelect").selectedIndex;
+
+        rows.sort((rowA, rowB) => {
+            const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
+            const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
+            return cellA.localeCompare(cellB);
+        });
+
+        tbody.innerHTML = "";
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    function downloadCSV() {
+        if (feedbackData.length === 0) {
+            alert("No data available to download!");
+            return;
+        }
+
+        const csvData = feedbackData.map(data => ({
+            "Name": data.studentName,
+            "Roll Number": data.rollNumber,
+            "Batch": data.batch,
+            "Industry Name": data.industryName,
+            "Duration": data.duration,
+            "Domain": data.domain,
+            "Relevance": data.relevance,
+            "Mentor Support": data.mentorSupport,
+            "Practical Exposure": data.practicalExposure,
+            "Technical Skills": data.technicalSkills,
+            "Problem Solving": data.problemSolving,
+            "Job Preparation": data.jobPreparation,
+            "Key Learnings": data.keyLearnings,
+            "Improvements": data.improvements,
+            "Additional Comments": data.additionalComments
+        }));
+
+        const csv = Papa.unparse(csvData);
+        const blob = new Blob([csv], { type: "text/csv" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "feedback_data.csv";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    document.getElementById("backButton").addEventListener("click", () => {
+        window.location.href = "admin1.html";
+    });
+</script>
+    </body>
+</html>

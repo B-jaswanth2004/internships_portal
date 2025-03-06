@@ -1,0 +1,422 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Body */
+body {
+    background: linear-gradient(135deg, #004080, #001f4d); /* Elegant Blue Theme */
+    color: #fff;
+    text-align: center;
+    min-height: 97vh;
+    font-size: 16px;
+    background-repeat: repeat; /* Ensures the background repeats */
+}
+
+/* Admin Header */
+h1 {
+    font-size: 2rem;
+    color: #ffcc00;
+    margin-top: 20px;
+}
+h3{
+    color: 004080;
+}
+
+/* Table Styling */
+table {
+    width: 70%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    overflow-x: auto; /* Allow horizontal scrolling */
+    display: block; /* Make the table scrollable */
+    max-width: 100%; /* Make sure table width doesn't overflow */
+    margin-bottom: 20px; /* Margin for scroll */
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    font-size: 1rem;
+}
+
+th {
+    background: #007BFF;
+    color: white;
+    font-size: 1.2rem;
+}
+
+td {
+    font-size: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+td .action-buttons button {
+    margin-right: 10px;
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+td .action-buttons button:hover {
+    background: #ffcc00;
+    color: #004080;
+}
+
+/* Edit Modal Styling */
+.modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    width: 80%;
+    max-width: 600px;
+}
+
+.modal input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.modal button {
+    display: flex;
+    flex-direction: row;
+    background: #007BFF;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.3rem;
+    transition: 0.3s ease;
+}
+
+.modal button:hover {
+    background: #0056b3;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.5rem;
+    color: #000;
+    cursor: pointer;
+}
+
+/* Logout Button */
+#logoutButton {
+    padding: 12px 20px;
+    background: #ffcc00;
+    border: none;
+    color: #004080;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    margin-top: 20px;
+}
+
+#logoutButton:hover {
+    background: #e6b800;
+}
+
+#downloadXlsButton{
+    padding: 12px 20px;
+    background: #ffcc00;
+    border: none;
+    color: #004080;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    margin-top: 20px;
+    
+}
+
+#feedbackButton{
+    padding: 12px 20px;
+    background: #ffcc00;
+    border: none;
+    color: #004080;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    margin-top: 20px;
+}
+
+
+.view{
+    padding: 12px 20px;
+    background: #ffcc00;
+    border: none;
+    color: #004080;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    margin-top: 20px;
+}
+
+/* Filter Section */
+#filterSection {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px auto;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    width: 80%;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#filterSection select, #filterSection button {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+#filterSection select {
+    width: 48%;
+}
+
+#filterSection button {
+    background: #007BFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+#filterSection button:hover {
+    background: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .modal {
+        width: 90%;
+    }
+
+    table {
+        width: 100%;
+        overflow-x: scroll; /* Ensure horizontal scrolling for smaller screens */
+        display: block;
+    }
+
+    #filterSection {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+
+    #filterSection select, #filterSection button {
+        width: 100%;
+    }
+
+    /* Search bar adjustment */
+    #globalSearch {
+        width: 100%;
+        max-width: 100%;
+        margin: 10px auto;
+    }
+}
+
+.edit-button {
+    padding: 12px 20px;
+    background: #ffcc00;
+    border: none;
+    color: #004080;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    margin-top: 20px;
+}
+
+.delete-button {
+    padding: 12px 20px;
+    background: #ffcc00;
+    border: none;
+    color: #004080;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    margin-top: 20px;
+}
+
+/* Search Bar Styles */
+#globalSearch {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px;
+    margin: 20px auto;
+    display: block;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #fff;
+    transition: all 0.3s ease;
+}
+
+/* Search Bar Focus Styles */
+#globalSearch:focus {
+    border-color: #0056b3;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 86, 179, 0.5);
+}
+
+/* Modal Adjustments */
+#editModal {
+    display: none; /* Hide the modal by default */
+    position: fixed;
+    height: 70%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    border-radius: 10px;
+}
+
+/* Optional: Add an overlay effect */
+#editModal.active {
+    display: block;
+}
+
+
+
+/* Edit Form (Modal) */
+#editModal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    width: 80%;
+    max-width: 600px;
+    overflow-y: auto; /* Ensure content scrolls if it exceeds modal height */
+}
+
+/* When Modal is active */
+#editModal.active {
+    display: block;
+}
+
+/* Form Styling */
+#editModal form {
+    display: flex;
+    flex-direction: column;
+}
+
+#editModal input,
+#editModal select,
+#editModal textarea {
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    background-color: #f7f7f7;
+    width: 100%;
+}
+
+/* Label Styling */
+#editModal label {
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    display: flex;
+    text-align: center;
+    color: #004080;
+}
+
+/* Submit Button Styling */
+#editModal button {
+    background: #007BFF;
+    color: white;
+    padding: 12px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    width: 50%;
+    margin: 2%;
+}
+
+#editModal button:hover {
+    background: #0056b3;
+    
+}
+
+/* Close Button Styling */
+#editModal .close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.5rem;
+    color: #000;
+    cursor: pointer;
+}
+
+/* Responsive Adjustments for Edit Modal */
+@media (max-width: 768px) {
+    #editModal {
+        width: 90%;
+        height: auto;
+        max-height: 90vh;
+    }
+
+    #editModal form {
+        padding: 20px;
+    }
+
+    #editModal input,
+    #editModal select,
+    #editModal textarea {
+        font-size: 0.9rem; /* Slightly smaller font for mobile */
+    }
+
+    #editModal button {
+        padding: 10px;
+        font-size: 1rem;
+    }
+}

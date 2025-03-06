@@ -1,0 +1,791 @@
+full woking admin page with css and all download
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="astyles.css">
+</head>
+<body>
+
+    <h1>Admin Dashboard</h1>
+    <p id="adminName">Welcome, Admin</p>
+    <button id="logoutButton">Logout</button>
+    <button id="downloadXlsButton">Download Data</button>
+
+    <!-- Global Search Field -->
+    <input type="text" id="globalSearch" placeholder="Search all fields...">
+
+    <!-- Table for displaying student data -->
+    <table id="studentTable">
+        <thead>
+            <tr>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Internship Title</th>
+                <th>Company Name</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- Download Button -->
+
+    <!-- Edit Modal -->
+    <div id="editModal">
+        <h3>Edit Student</h3>
+        <input type="hidden" id="editUserId">
+        <input type="hidden" id="editCertificateId">
+        <label>Student ID:</label>
+        <input type="text" id="editStudentId"><br>
+        <label>Name:</label><input type="text" id="editStudentName"><br>
+        <label>Email:</label><input type="text" id="editStudentEmail"><br>
+        <label>Internship:</label><input type="text" id="editInternshipTitle"><br>
+        <label>Start Date:</label><input type="text" id="editStartDate"><br>
+        <label>End Date:</label><input type="text" id="editEndDate"><br>
+        <label>Company:</label><input type="text" id="editCompanyName"><br>
+        <button class="update-button" id="updateStudentButton">Update</button>
+        <button class="close-button" onclick="closeEditForm()">Close</button>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+        import { getDatabase, ref, get, update, remove } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7Z3bImR0ExmGk5xN1JlF9O2xzKoNtJe8",
+            authDomain: "vsip-ae225.firebaseapp.com",
+            databaseURL: "https://vsip-ae225-default-rtdb.firebaseio.com",
+            projectId: "vsip-ae225",
+            storageBucket: "vsip-ae225.appspot.com",
+            messagingSenderId: "583742741789",
+            appId: "1:583742741789:web:96371708ed7f76c45415f4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let studentData = [];
+
+        // Fetch user details and display them
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.email === "admin@example.com") {
+                document.getElementById('adminName').textContent = `Welcome, Admin`;
+                loadStudentData();
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // Load student data from Firebase
+        function loadStudentData() {
+            get(ref(db, 'users')).then((snapshot) => {
+                if (snapshot.exists()) {
+                    studentData = [];
+                    const users = snapshot.val();
+                    for (let userId in users) {
+                        if (users[userId].certificates) {
+                            for (let certificateId in users[userId].certificates) {
+                                const certificate = users[userId].certificates[certificateId];
+                                studentData.push({ ...certificate, userId, certificateId });
+                            }
+                        }
+                    }
+                    displayStudents(studentData);
+                }
+            });
+        }
+
+        // Display student data in table
+        function displayStudents(students) {
+            const tableBody = document.querySelector("#studentTable tbody");
+            tableBody.innerHTML = '';
+            students.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.studentId}</td>
+                    <td>${student.studentName}</td>
+                    <td>${student.studentEmail}</td>
+                    <td>${student.internshipTitle}</td>
+                    <td>${student.companyName}</td>
+                    <td>${student.startDate}</td>
+                    <td>${student.endDate}</td>
+                    <td>
+                        <button class="edit-button" onclick="openEditForm('${student.userId}', '${student.certificateId}')">Edit</button>
+                        <button class="delete-button" onclick="deleteStudent('${student.userId}', '${student.certificateId}')">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Open edit form and populate fields
+        window.openEditForm = (userId, certificateId) => {
+            const student = studentData.find(s => s.userId === userId && s.certificateId === certificateId);
+            Object.entries(student).forEach(([key, value]) => {
+                const inputField = document.getElementById(`edit${key.charAt(0).toUpperCase() + key.slice(1)}`);
+                if (inputField) {
+                    inputField.value = value;
+                }
+            });
+            document.getElementById('editModal').style.display = 'block';
+        };
+
+        // Close edit modal
+        window.closeEditForm = () => document.getElementById('editModal').style.display = 'none';
+
+        // Update student data in Firebase
+        document.getElementById('updateStudentButton').addEventListener('click', () => {
+            const userId = document.getElementById('editUserId').value;
+            const certificateId = document.getElementById('editCertificateId').value;
+
+            const updatedStudent = {
+                studentId: document.getElementById('editStudentId').value,
+                studentName: document.getElementById('editStudentName').value,
+                studentEmail: document.getElementById('editStudentEmail').value,
+                internshipTitle: document.getElementById('editInternshipTitle').value,
+                startDate: document.getElementById('editStartDate').value,
+                endDate: document.getElementById('editEndDate').value,
+                companyName: document.getElementById('editCompanyName').value,
+                uploadedAt: new Date().toISOString()
+            };
+
+            update(ref(db, `users/${userId}/certificates/${certificateId}`), updatedStudent)
+                .then(() => {
+                    loadStudentData();
+                    closeEditForm();
+                });
+        });
+
+        // Delete student data from Firebase
+        window.deleteStudent = (userId, certificateId) => {
+            remove(ref(db, `users/${userId}/certificates/${certificateId}`))
+                .then(() => loadStudentData());
+        };
+
+        // Search functionality
+        document.getElementById('globalSearch').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filteredData = studentData.filter(student => {
+                return Object.values(student).some(value =>
+                    value.toString().toLowerCase().includes(query)
+                );
+            });
+            displayStudents(filteredData);
+        });
+
+        // Logout function
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = "login.html";
+            });
+        });
+
+        // Download data as XLS
+        document.getElementById('downloadXlsButton').addEventListener('click', () => {
+            const wsData = [
+                ['Student ID', 'Name', 'Email', 'Internship Title', 'Company Name', 'Start Date', 'End Date']
+            ];
+
+            studentData.forEach(student => {
+                wsData.push([student.studentId, student.studentName, student.studentEmail, student.internshipTitle, student.companyName, student.startDate, student.endDate]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData); // This should work now with correct loading of XLSX
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Students');
+
+            // Save the Excel file
+            XLSX.writeFile(wb, 'students_data.xlsx');
+        });
+    </script>
+
+    <!-- Include SheetJS library at the end -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//changed and working openEditForm
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="astyles.css">
+</head>
+<body>
+
+    <h1>Admin Dashboard</h1>
+    <p id="adminName">Welcome, Admin</p>
+    <button id="logoutButton">Logout</button>
+    <button id="downloadXlsButton">Download Data</button>
+
+    <!-- Global Search Field -->
+    <input type="text" id="globalSearch" placeholder="Search all fields...">
+
+    <!-- Table for displaying student data -->
+    <table id="studentTable">
+        <thead>
+            <tr>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Year Of Study</th>
+                <th>Internship Title</th>
+                <th>Company Name</th>
+                <th>Paid/Unpaid</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- Download Button -->
+
+    <!-- Edit Modal -->
+    <div id="editModal">
+        <h3>Edit Student</h3>
+        <input type="hidden" id="editUserId">
+        <input type="hidden" id="editCertificateId">
+        <label>Student ID:</label>
+        <input type="text" id="editStudentId"><br>
+        <label>Name:</label><input type="text" id="editStudentName"><br>
+        <label>Email:</label><input type="text" id="editStudentEmail"><br>
+        
+        <label>Internship:</label><input type="text" id="editInternshipTitle"><br>
+        <label>Paid/Unpaid</label><input type="text" id="editPaidUnpaid"><br>
+        <label>Start Date:</label><input type="text" id="editStartDate"><br>
+        <label>End Date:</label><input type="text" id="editEndDate"><br>
+        <label>Company:</label><input type="text" id="editCompanyName"><br>
+        <button class="update-button" id="updateStudentButton">Update</button>
+        <button class="close-button" onclick="closeEditForm()">Close</button>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+        import { getDatabase, ref, get, update, remove } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7Z3bImR0ExmGk5xN1JlF9O2xzKoNtJe8",
+            authDomain: "vsip-ae225.firebaseapp.com",
+            databaseURL: "https://vsip-ae225-default-rtdb.firebaseio.com",
+            projectId: "vsip-ae225",
+            storageBucket: "vsip-ae225.appspot.com",
+            messagingSenderId: "583742741789",
+            appId: "1:583742741789:web:96371708ed7f76c45415f4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let studentData = [];
+
+        // Fetch user details and display them
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.email === "admin@example.com") {
+                document.getElementById('adminName').textContent = `Welcome, Admin`;
+                loadStudentData();
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // Load student data from Firebase
+        function loadStudentData() {
+            get(ref(db, 'users')).then((snapshot) => {
+                if (snapshot.exists()) {
+                    studentData = [];
+                    const users = snapshot.val();
+                    for (let userId in users) {
+                        if (users[userId].certificates) {
+                            for (let certificateId in users[userId].certificates) {
+                                const certificate = users[userId].certificates[certificateId];
+                                studentData.push({ ...certificate, userId, certificateId });
+                            }
+                        }
+                    }
+                    displayStudents(studentData);
+                }
+            });
+        }
+
+        // Display student data in table
+        function displayStudents(students) {
+            const tableBody = document.querySelector("#studentTable tbody");
+            tableBody.innerHTML = '';
+            students.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.studentId}</td>
+                    <td>${student.studentName}</td>
+                    <td>${student.studentEmail}</td>
+                    <td>${student.YearOfStudy}</td>
+                    <td>${student.internshipTitle}</td>
+                    <td>${student.companyName}</td>
+                    <td>${student.stipendAmount}</td>
+                    <td>${student.startDate}</td>
+                    <td>${student.endDate}</td>
+                    <td>
+                        <button class="edit-button" onclick="openEditForm('${student.userId}', '${student.certificateId}')">Edit</button>
+                        <button class="delete-button" onclick="deleteStudent('${student.userId}', '${student.certificateId}')">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Open edit form and populate fields
+        window.openEditForm = (userId, certificateId) => {
+            const student = studentData.find(s => s.userId === userId && s.certificateId === certificateId);
+            Object.entries(student).forEach(([key, value]) => {
+                const inputField = document.getElementById(`edit${key.charAt(0).toUpperCase() + key.slice(1)}`);
+                if (inputField) {
+                    inputField.value = value;
+                }
+            });
+            document.getElementById('editModal').style.display = 'block';
+        };
+
+        // Close edit modal
+        window.closeEditForm = () => document.getElementById('editModal').style.display = 'none';
+
+        // Update student data in Firebase
+        document.getElementById('updateStudentButton').addEventListener('click', () => {
+            const userId = document.getElementById('editUserId').value;
+            const certificateId = document.getElementById('editCertificateId').value;
+
+            const updatedStudent = {
+                studentId: document.getElementById('editStudentId').value,
+                studentName: document.getElementById('editStudentName').value,
+                studentEmail: document.getElementById('editStudentEmail').value,
+            
+                internshipTitle: document.getElementById('editInternshipTitle').value,
+                PaidUnpaid: document.getElementById('editPaidUnpaid').value,
+                startDate: document.getElementById('editStartDate').value,
+                endDate: document.getElementById('editEndDate').value,
+                companyName: document.getElementById('editCompanyName').value,
+                uploadedAt: new Date().toISOString()
+            };
+
+            update(ref(db, `users/${userId}/certificates/${certificateId}`), updatedStudent)
+                .then(() => {
+                    loadStudentData();
+                    closeEditForm();
+                });
+        });
+
+        // Delete student data from Firebase
+        window.deleteStudent = (userId, certificateId) => {
+            remove(ref(db, `users/${userId}/certificates/${certificateId}`))
+                .then(() => loadStudentData());
+        };
+
+        // Search functionality
+        document.getElementById('globalSearch').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filteredData = studentData.filter(student => {
+                return Object.values(student).some(value =>
+                    value.toString().toLowerCase().includes(query)
+                );
+            });
+            displayStudents(filteredData);
+        });
+
+        // Logout function
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = "welcome.html";
+            });
+        });
+
+        // Download data as XLS
+        document.getElementById('downloadXlsButton').addEventListener('click', () => {
+            const wsData = [
+                ['Student ID', 'Name', 'Email', 'Internship Title', 'Company Name', 'Start Date', 'End Date','Paid/Unpaid']
+            ];
+
+            studentData.forEach(student => {
+                wsData.push([student.studentId, student.studentName, student.studentEmail, student.internshipTitle, student.companyName, student.startDate, student.endDate, student.stipendAmount]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData); // This should work now with correct loading of XLSX
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Students');
+
+            // Save the Excel file
+            XLSX.writeFile(wb, 'students_data.xlsx');
+        });
+    </script>
+
+    <!-- Include SheetJS library at the end -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="astyles.css">
+</head>
+<body>
+
+    <h1>Admin Dashboard</h1>
+    <p id="adminName">Welcome, Admin</p>
+    <button id="logoutButton">Logout</button>
+    <button id="downloadXlsButton">Download Data</button>
+
+    <!-- Global Search Field -->
+    <input type="text" id="globalSearch" placeholder="Search all fields...">
+
+    <!-- Table for displaying student data -->
+    <table id="studentTable">
+        <thead>
+            <tr>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Year Of Study</th>
+                <th>Internship Title</th>
+                <th>Company Name</th>
+                <th>Paid/Unpaid</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- Download Button -->
+
+    <!-- Edit Modal -->
+    <div id="editModal">
+        <h3>Edit Student</h3>
+        <input type="hidden" id="editUserId">
+        <input type="hidden" id="editCertificateId">
+        <label>Student ID:</label>
+        <input type="text" id="editStudentId"><br>
+        <label>Name:</label><input type="text" id="editStudentName"><br>
+        <label>Email:</label><input type="text" id="editStudentEmail"><br>
+        
+        <label>Internship:</label><input type="text" id="editInternshipTitle"><br>
+        <label>Paid/Unpaid</label><input type="text" id="editPaidUnpaid"><br>
+        <label>Start Date:</label><input type="text" id="editStartDate"><br>
+        <label>End Date:</label><input type="text" id="editEndDate"><br>
+        <label>Company:</label><input type="text" id="editCompanyName"><br>
+        <button class="update-button" id="updateStudentButton">Update</button>
+        <button class="close-button" onclick="closeEditForm()">Close</button>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+        import { getDatabase, ref, get, update, remove } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7Z3bImR0ExmGk5xN1JlF9O2xzKoNtJe8",
+            authDomain: "vsip-ae225.firebaseapp.com",
+            databaseURL: "https://vsip-ae225-default-rtdb.firebaseio.com",
+            projectId: "vsip-ae225",
+            storageBucket: "vsip-ae225.appspot.com",
+            messagingSenderId: "583742741789",
+            appId: "1:583742741789:web:96371708ed7f76c45415f4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let studentData = [];
+
+        // Fetch user details and display them
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.email === "admin@example.com") {
+                document.getElementById('adminName').textContent = `Welcome, Admin`;
+                loadStudentData();
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // Load student data from Firebase
+        function loadStudentData() {
+            get(ref(db, 'users')).then((snapshot) => {
+                if (snapshot.exists()) {
+                    studentData = [];
+                    const users = snapshot.val();
+                    for (let userId in users) {
+                        if (users[userId].certificates) {
+                            for (let certificateId in users[userId].certificates) {
+                                const certificate = users[userId].certificates[certificateId];
+                                studentData.push({ ...certificate, userId, certificateId });
+                            }
+                        }
+                    }
+                    displayStudents(studentData);
+                }
+            });
+        }
+
+        // Display student data in table
+        function displayStudents(students) {
+
+            students.sort((a, b) => a.studentName.localeCompare(b.studentName));// for sorting the data
+
+            const tableBody = document.querySelector("#studentTable tbody");
+            tableBody.innerHTML = '';
+            students.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.studentId}</td>
+                    <td>${student.studentName}</td>
+                    <td>${student.studentEmail}</td>
+                    <td>${student.YearOfStudy}</td>
+                    <td>${student.internshipTitle}</td>
+                    <td>${student.companyName}</td>
+                    <td>${student.stipendAmount}</td>
+                    <td>${student.startDate}</td>
+                    <td>${student.endDate}</td>
+                    <td>
+                        <button class="edit-button" onclick="openEditForm('${student.userId}', '${student.certificateId}')">Edit</button>
+                        <button class="delete-button" onclick="deleteStudent('${student.userId}', '${student.certificateId}')">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Open edit form and populate fields
+        window.openEditForm = (userId, certificateId) => {
+            const student = studentData.find(s => s.userId === userId && s.certificateId === certificateId);
+            Object.entries(student).forEach(([key, value]) => {
+                const inputField = document.getElementById(`edit${key.charAt(0).toUpperCase() + key.slice(1)}`);
+                if (inputField) {
+                    inputField.value = value;
+                }
+            });
+            document.getElementById('editModal').style.display = 'block';
+        };
+
+        // Close edit modal
+        window.closeEditForm = () => document.getElementById('editModal').style.display = 'none';
+
+        // Update student data in Firebase
+        document.getElementById('updateStudentButton').addEventListener('click', () => {
+            const userId = document.getElementById('editUserId').value;
+            const certificateId = document.getElementById('editCertificateId').value;
+
+            const updatedStudent = {
+                studentId: document.getElementById('editStudentId').value,
+                studentName: document.getElementById('editStudentName').value,
+                studentEmail: document.getElementById('editStudentEmail').value,
+            
+                internshipTitle: document.getElementById('editInternshipTitle').value,
+                PaidUnpaid: document.getElementById('editPaidUnpaid').value,
+                startDate: document.getElementById('editStartDate').value,
+                endDate: document.getElementById('editEndDate').value,
+                companyName: document.getElementById('editCompanyName').value,
+                uploadedAt: new Date().toISOString()
+            };
+
+            update(ref(db, `users/${userId}/certificates/${certificateId}`), updatedStudent)
+                .then(() => {
+                    loadStudentData();
+                    closeEditForm();
+                });
+        });
+
+        // Delete student data from Firebase
+        window.deleteStudent = (userId, certificateId) => {
+            remove(ref(db, `users/${userId}/certificates/${certificateId}`))
+                .then(() => loadStudentData());
+        };
+
+        // Search functionality
+        document.getElementById('globalSearch').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filteredData = studentData.filter(student => {
+                return Object.values(student).some(value =>
+                    value.toString().toLowerCase().includes(query)
+                );
+            });
+            displayStudents(filteredData);
+        });
+
+        // Logout function
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = "welcome.html";
+            });
+        });
+
+        // Download data as XLS
+        document.getElementById('downloadXlsButton').addEventListener('click', () => {
+    const tableRows = document.querySelectorAll("#studentTable tbody tr");
+    const wsData = [
+        ['Student ID', 'Name', 'Email', 'Year Of Study', 'Internship Title', 'Company Name', 'Paid/Unpaid', 'Start Date', 'End Date']
+    ];
+
+    tableRows.forEach(row => {
+        const rowData = [];
+        const cells = row.querySelectorAll("td");
+
+        // Loop through all columns except the last one (Actions)
+        for (let i = 0; i < cells.length - 1; i++) {
+            rowData.push(cells[i].innerText);
+        }
+
+        wsData.push(rowData);
+    });
+
+    if (wsData.length === 1) {
+        alert("No data to download! Please filter the table first.");
+        return;
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Filtered Students');
+
+    XLSX.writeFile(wb, 'filtered_students_data.xlsx');
+});
+
+    </script>
+
+    <!-- Include SheetJS library at the end -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+// working firebase rules before adding feeedback form rules
+
+
+{
+  "rules": {
+    ".read": "auth != null", // Allow read if the user is authenticated
+    ".write": "auth != null", // Allow write if the user is authenticated
+    "users": {
+      "$userId": {
+        ".read": "$userId === auth.uid",
+        ".write": "$userId === auth.uid",
+        "certificates": {
+          "$fileName": {
+            ".read": "$userId === auth.uid",
+            ".write": "$userId === auth.uid"
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+
+
+
+

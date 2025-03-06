@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+            align-items: center;
+            justify-content: center;
+        }
+        .fhalf, .shalf {
+            width: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .fhalf img {
+            max-width: 80%;
+            height: auto;
+        }
+        .shalf {
+            height: 100%;
+            background: linear-gradient(white, pink);
+            flex-direction: column;
+            text-align: center;
+        }
+        .typing-text {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            display: inline-block;
+            border-right: 3px solid black; /* Cursor effect */
+            padding-right: 5px;
+        }
+        .shalf p {
+            font-size: 1.2em;
+            max-width: 80%;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+            }
+            .fhalf, .shalf {
+                width: 100%;
+                padding: 30px;
+            }
+            .shalf p {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="fhalf">
+            <img src="vishnulogo.png" alt="Institution Logo">
+        </div>
+        <div class="shalf">
+            <div>
+                <h1 class="typing-text"></h1> <!-- Empty h1 to animate text -->
+                <p class="fade-text">Showcase your certifications and internship experiences in one place. 
+                   Let your institution monitor your professional growth.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const textElement = document.querySelector(".typing-text");
+            const fullText = "Track Your Academic Journey";
+            let index = 0;
+
+            function typeText() {
+                if (index < fullText.length) {
+                    textElement.textContent += fullText.charAt(index);
+                    index++;
+                    setTimeout(typeText, 100); // Adjust speed here
+                } else {
+                    textElement.style.borderRight = "none"; // Remove cursor effect after typing
+                    document.querySelector(".fade-text").style.opacity = 1; // Show paragraph after typing
+                }
+            }
+
+            setTimeout(typeText, 500); // Start typing after 500ms
+        });
+    </script>
+</body>
+</html>

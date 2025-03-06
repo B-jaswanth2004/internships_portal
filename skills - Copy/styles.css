@@ -1,0 +1,267 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Body */
+body {
+    background: linear-gradient(135deg, #004080, #001f4d); /* Elegant Blue Theme */
+    color: #fff;
+    text-align: center;
+    min-height: 100vh;
+}
+
+/* Navbar */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: rgba(255, 255, 255, 0.1); /* Semi-transparent background */
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+/* Logo */
+.navbar .logo {
+    display: flex;
+    align-items: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #ffcc00;  /* Yellow-gold color */
+}
+
+.navbar .logo i {
+    margin-right: 10px;
+    font-size: 28px;
+}
+
+/* Navbar Buttons */
+.nav-buttons {
+    display: flex;  /* Make buttons appear side by side */
+    gap: 15px;
+}
+
+.nav-buttons .btn {
+    padding: 10px 18px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    border-radius: 8px;
+}
+
+.btn-primary {
+    background: #ffcc00;
+    color: #004080;
+}
+
+.btn-primary:hover {
+    background: #e6b800;
+}
+
+.btn-outline {
+    background: transparent;
+    color: #ffcc00;
+    border: 2px solid #ffcc00;
+}
+
+.btn-outline:hover {
+    background: #ffcc00;
+    color: #004080;
+}
+
+/* Uploaded Files Section */
+.uploaded-files {
+    margin-top: 100px;  /* Increased space for navbar */
+}
+
+h2 {
+    font-size: 1.8em;
+    color: #fff;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+/* File Grid (for table display) */
+.file-grid {
+    overflow-x: auto;
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #ffffff; /* White background for the table */
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow to lift the table */
+}
+
+th, td {
+    padding: 12px 20px;
+    text-align: left;
+    border: 1px solid #ddd; /* Light gray border */
+}
+
+th {
+    background-color: #004080;  /* Dark blue header */
+    color: #ffcc00;  /* Yellow-gold text */
+    font-weight: bold;
+}
+
+td {
+    background-color: #f9f9f9;  /* Light gray background for rows */
+    color: #333;  /* Dark text for readability */
+}
+
+td a {
+    color: #ffcc00;  /* Yellow-gold for links */
+    text-decoration: none;
+}
+
+td a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Table */
+@media screen and (max-width: 768px) {
+    table {
+        width: 100%;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    th, td {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    .navbar {
+        flex-direction: column;
+        padding: 15px;
+    }
+
+    .nav-buttons {
+        flex-direction: row;
+        gap: 15px;
+        margin-left: 15%;
+        margin-top: 10px;
+        align-items: center;
+        width: 100%;
+    }
+}
+
+/* Floating Button */
+.float {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    background-color: #ffcc00;
+    border: none;
+    border-radius: 50%;
+    padding: 15px;
+    font-size: 24px;
+    color: #004080;
+    cursor: pointer;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.float:hover {
+    background-color: #e6b800;
+}
+
+/* Adjust spacing for uploaded files section */
+.uploaded-files {
+    margin-top: 120px; /* Increased margin for navbar */
+}
+
+/* Upload Form */
+.upload-container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 30px auto; /* Center form and add margin at the top */
+}
+
+.upload-container h2 {
+    margin-bottom: 20px;
+    font-size: 1.6rem;
+    color: #004080; /* Dark Blue Color */
+    font-weight: bold;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #004080; /* Dark Blue Color */
+}
+
+.form-group input, .form-group select {
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 16px;
+}
+
+.form-group input[type="submit"] {
+    background-color: #ffcc00;
+    color: white;
+    cursor: pointer;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.form-group input[type="submit"]:hover {
+    background-color: #e6b800;
+}
+
+/* Upload Icon Styles */
+.upload-icon {
+    font-size: 24px;
+    color: #ffcc00;
+    background-color: #004080;
+    border-radius: 50%;
+    padding: 12px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.3s ease;
+}
+
+.upload-icon:hover {
+    background-color: #e6b800;
+}
+
+.submit
+{
+    background-color: #004080;
+    color: #ffcc00;
+    width: 30%;
+    
+    font-size: 20px;
+    padding: 5px;
+    border-radius: 5%;
+}
+

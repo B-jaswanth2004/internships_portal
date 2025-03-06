@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SkillShare Portal</title>
+    <link rel="stylesheet" href="styles1.css">
+        
+    
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <img src="vishnulogo.png" alt="">
+                <span>SkillsSharePortal</span>
+            </div>
+            <div class="nav-buttons">
+                <span id="userName"></span> <!-- Display User's Name -->
+                <button id="uploadButtonNav" class="btn btn-primary">
+                    <i data-lucide="upload"></i>
+                    Upload
+                </button>
+                <button id="logoutButton" class="btn btn-primary">
+                    <i data-lucide="log-out"></i>
+                    Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Uploaded Certificates Section -->
+    <main>
+        <section class="uploaded-files">
+            <h2>Your Uploaded Certificates</h2>
+            <div id="fileList" class="file-grid">
+                <!-- Display uploaded files here -->
+            </div>
+        </section>
+
+        <!-- Internship Certificate Upload Form -->
+        <section class="upload-container">
+            <h2>Upload Internship Certificate</h2>
+            <form id="internshipForm">
+                <div class="form-group">
+                    <label for="studentEmail">Student Email:</label>
+                    <input type="email" id="studentEmail" name="studentEmail" required>
+
+                    <label for="studentName">Student Name:</label>
+                    <input type="text" id="studentName" name="studentName" required>
+
+                    <label for="studentId">Student ID:</label>
+                    <input type="text" id="studentId" name="studentId" required>
+
+                    <label for="internshipType">Internship Type:</label>
+                    <select id="internshipType" name="internshipType" required>
+                        <option value="AICTE">AICTE</option>
+                        <option value="OtherInternships">Other Internships</option>
+                    </select>
+
+                    <!-- If "Other Internships" is selected, show Paid/Unpaid option -->
+                    <div id="otherInternshipOptions" style="display: none;">
+                        <label>Is this internship Paid?</label>
+                        <input type="radio" id="paid" name="internshipPaid" value="paid">
+                        <label for="paid">Paid</label>
+                        <input type="radio" id="unpaid" name="internshipPaid" value="unpaid">
+                        <label for="unpaid">Unpaid</label>
+
+                        <!-- If Paid is selected, ask for stipend amount -->
+                        <div id="stipendContainer" class="stipend-container">
+                            <label for="stipendAmount">Stipend Amount:</label>
+                            <input type="number" id="stipendAmount" name="stipendAmount" placeholder="Enter stipend amount">
+                        </div>
+                    </div>
+
+                    <label for="internshipTitle">Internship Title:</label>
+                    <input type="text" id="internshipTitle" name="internshipTitle" required>
+
+                    <label for="companyName">Company Name:</label>
+                    <input type="text" id="companyName" name="companyName" required>
+
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" id="startDate" name="startDate" required>
+
+                    <label for="endDate">End Date:</label>
+                    <input type="date" id="endDate" name="endDate" required>
+
+                    <label for="certificate">Upload Certificate (PDF, JPG, PNG) (max 50KB):</label>
+                    <input type="file" id="certificate" name="certificate" accept=".pdf,.jpg,.jpeg,.png" required>
+                </div>
+
+                <input type="submit" value="Upload">
+            </form>
+        </section>
+    </main>
+
+    <!-- Floating Upload Button -->
+    <div class="float">
+        <button id="uploadButton" class="btn">
+            <span>+</span>
+        </button>
+    </div>
+
+    <script type="module">
+        // Import Firebase functions
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
+        import { getDatabase, ref as dbRef, set, get } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7Z3bImR0ExmGk5xN1JlF9O2xzKoNtJe8",
+            authDomain: "vsip-ae225.firebaseapp.com",
+            databaseURL: "https://vsip-ae225-default-rtdb.firebaseio.com",
+            projectId: "vsip-ae225",
+            storageBucket: "vsip-ae225.appspot.com",
+            messagingSenderId: "583742741789",
+            appId: "1:583742741789:web:96371708ed7f76c45415f4"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
+        const db = getDatabase(app);
+
+        // Check if the user is authenticated and display their name
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in
+                document.getElementById('userName').textContent = `Welcome, ${user.displayName || user.email.split('@')[0]}`;
+                loadUploadedFiles(user.uid);  // Load files on dashboard based on user UID
+            } else {
+                // User is not signed in, redirect to login page
+                window.location.href = "login.html";
+            }
+        });
+
+        // Function to upload internship certificate
+        function uploadCertificate(event) {
+            event.preventDefault(); // Prevent form submission
+
+            const fileInput = document.getElementById('certificate');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Please select a file to upload.");
+                return;
+            }
+
+            const user = auth.currentUser;
+            if (!user) {
+                alert("You need to be logged in to upload files.");
+                return;
+            }
+
+            const storageRef = ref(storage, `certificates/${user.uid}/${file.name}`);
+            uploadBytes(storageRef, file).then((snapshot) => {
+                console.log("Uploaded a file!", snapshot);
+                getDownloadURL(snapshot.ref).then((url) => {
+                    // Get form values
+                    const formData = new FormData(document.getElementById('internshipForm'));
+                    const certificateData = {
+                        studentEmail: formData.get('studentEmail'),
+                        studentName: formData.get('studentName'),
+                        studentId: formData.get('studentId'),
+                        internshipType: formData.get('internshipType'),
+                        internshipTitle: formData.get('internshipTitle'),
+                        companyName: formData.get('companyName'),
+                        startDate: formData.get('startDate'),
+                        endDate: formData.get('endDate'),
+                        certificateUrl: url,
+                        uploadedAt: new Date().toISOString(),
+                        stipendAmount: formData.get('stipendAmount') || ''
+                    };
+
+                    // Save data to Firebase Realtime Database
+                    saveCertificateMetadata(user.uid, certificateData);
+                });
+            }).catch((error) => {
+                console.error("Error uploading file:", error);
+                alert("Error uploading file: " + error.message);
+            });
+        }
+
+        // Save certificate data to Firebase Realtime Database
+        function saveCertificateMetadata(userId, certificateData) {
+            const certificateRef = dbRef(db, `users/${userId}/certificates/${certificateData.studentId}`);
+            set(certificateRef, certificateData).then(() => {
+                console.log("Certificate metadata saved to Realtime Database!");
+                loadUploadedFiles(userId); // Reload uploaded files
+            }).catch((error) => {
+                console.error("Error saving certificate metadata:", error);
+                alert("Error saving certificate metadata: " + error.message);
+            });
+        }
+
+        // Load uploaded certificates from Firebase Realtime Database
+        function loadUploadedFiles(userId) {
+            const filesRef = dbRef(db, `users/${userId}/certificates`);
+            get(filesRef).then((snapshot) => {
+                const fileList = document.getElementById('fileList');
+                fileList.innerHTML = ''; // Clear current files before adding new ones
+                if (snapshot.exists()) {
+                    const certificates = snapshot.val();
+                    for (const certificateId in certificates) {
+                        const certificateData = certificates[certificateId];
+                        const fileItem = document.createElement('div');
+                        fileItem.classList.add('file-item');
+                        fileItem.innerHTML = `
+                            <p><strong>Student Name:</strong> ${certificateData.studentName}</p>
+                            <p><strong>Internship Title:</strong> ${certificateData.internshipTitle}</p>
+                            <p><strong>Company:</strong> ${certificateData.companyName}</p>
+                            <p><a href="${certificateData.certificateUrl}" target="_blank">View Certificate</a></p>
+                        `;
+                        fileList.appendChild(fileItem);
+                    }
+                } else {
+                    fileList.innerHTML = '<p>No certificates uploaded yet.</p>';
+                }
+            }).catch((error) => {
+                console.error("Error loading certificates:", error);
+            });
+        }
+
+        // Logout function
+        function logout() {
+            signOut(auth).then(() => {
+                alert("Logged out successfully");
+                window.location.href = "login.html"; // Redirect to login after logout
+            }).catch((error) => {
+                console.error("Error logging out:", error);
+                alert("Error logging out: " + error.message);
+            });
+        }
+
+        // Adding event listeners for buttons and form
+        document.getElementById('logoutButton').addEventListener('click', logout);
+        document.getElementById('internshipForm').addEventListener('submit', uploadCertificate);
+
+        // Show upload form when the floating or navbar upload button is clicked
+        document.getElementById('uploadButton').addEventListener('click', function() {
+            document.querySelector('section.upload-container').style.display = 'block';
+        });
+
+        document.getElementById('uploadButtonNav').addEventListener('click', function() {
+            document.querySelector('section.upload-container').style.display = 'block';
+        });
+
+        // Toggle internship options based on the selection
+        document.getElementById('internshipType').addEventListener('change', function() {
+            const selectedOption = this.value;
+            const otherInternshipOptions = document.getElementById('otherInternshipOptions');
+            const stipendContainer = document.getElementById('stipendContainer');
+            
+            if (selectedOption === 'OtherInternships') {
+                otherInternshipOptions.style.display = 'block';
+            } else {
+                otherInternshipOptions.style.display = 'none';
+                stipendContainer.style.display = 'none';
+            }
+        });
+
+        // Toggle stipend amount field if "Paid" is selected
+        document.getElementById('paid').addEventListener('change', function() {
+            const stipendContainer = document.getElementById('stipendContainer');
+            stipendContainer.style.display = this.checked ? 'block' : 'none';
+        });
+
+        document.getElementById('unpaid').addEventListener('change', function() {
+            const stipendContainer = document.getElementById('stipendContainer');
+            stipendContainer.style.display = this.checked ? 'none' : 'block';
+        });
+    </script>
+</body>
+</html>
